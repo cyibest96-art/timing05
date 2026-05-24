@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.timing05.com" }],
+      "destination": "https://timing05.com/$1",
+      "permanent": true
+    }
+  ]
+}
