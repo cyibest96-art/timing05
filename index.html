@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -978,11 +978,24 @@
       .nav-menu { display:none; }
       .nav-menu.open {
         display:flex; flex-direction:column; gap:0;
-        position:fixed; inset:0; background:rgba(8,8,8,0.97);
-        align-items:center; justify-content:center; z-index:998;
+        position:fixed; inset:0; background:#0a0a0a;
+        align-items:center; justify-content:center; z-index:10000;
+        overflow:hidden;
       }
-      .nav-menu.open a { font-size:22px; padding:20px 0; border-bottom:1px solid rgba(255,255,255,0.05); width:70%; text-align:center; }
-      .nav-hamburger { display:flex; z-index:1000; }
+      .nav-menu.open a { font-size:18px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.08); width:80%; text-align:center; color:#fff; flex-shrink:0; }
+      .nav-menu.open a.nav-tel { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; border:1px solid var(--gold); border-radius:50px; padding:13px 0; color:var(--gold); border-bottom:1px solid var(--gold); }
+      .nav-hamburger { display:flex; z-index:10001; }
+
+      /* 모바일 메뉴 오버레이 */
+      #mobileOverlay {
+        display:none; position:fixed; inset:0; background:#0a0a0a;
+        flex-direction:column; align-items:center; justify-content:center;
+        z-index:99999; overflow:hidden;
+      }
+      #mobClose { position:absolute; top:20px; right:20px; background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; }
+      #mobileOverlay.open { display:flex; }
+      .mob-item { font-size:18px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.08); width:80%; text-align:center; color:#fff; text-decoration:none; }
+      .mob-tel { margin-top:12px; border:1px solid #C9A84C !important; border-radius:50px; color:#C9A84C !important; }
 
       /* HERO */
       .hero-logo img { height:110px; }
@@ -1101,6 +1114,23 @@
 <body>
 
   <!-- ══ NAVBAR ══ -->
+  <!-- 모바일 메뉴 오버레이 (nav 밖에 위치 - stacking context 문제 해결) -->
+  <div id="mobileOverlay">
+    <button id="mobClose" onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;cursor:pointer;padding:8px;">
+      <span style="display:block;width:22px;height:2px;background:#fff;transform:rotate(45deg) translate(5px,5px);border-radius:2px;"></span>
+      <span style="display:block;width:22px;height:2px;background:#fff;opacity:0;"></span>
+      <span style="display:block;width:22px;height:2px;background:#fff;transform:rotate(-45deg) translate(5px,-5px);border-radius:2px;"></span>
+    </button>
+    <a href="#rooms" class="mob-item">룸 소개</a>
+    <a href="#about" class="mob-item">가게 소개</a>
+    <a href="#drinks" class="mob-item">주류 메뉴</a>
+    <a href="#food" class="mob-item">안주 메뉴</a>
+    <a href="#price" class="mob-item">가격 안내</a>
+    <a href="#reviews" class="mob-item">고객 후기</a>
+    <a href="#location" class="mob-item">오시는 길</a>
+    <a href="#faq" class="mob-item">자주 묻는 질문</a>
+    <a href="tel:010-2343-2434" class="mob-item mob-tel">지금 예약하기</a>
+  </div>
   <nav id="nav">
     <a href="#" class="nav-logo">
       <img src="logo.png" alt="타이밍">
@@ -1114,7 +1144,6 @@
       <a href="#reviews">고객 후기</a>
       <a href="#location">오시는 길</a>
       <a href="#faq">자주 묻는 질문</a>
-      <a href="tel:010-2343-2434" class="nav-tel">📞 &nbsp;지금 예약하기</a>
     </div>
     <div class="nav-hamburger" id="hb" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -1790,17 +1819,35 @@
     });
 
     // Mobile nav
-    function toggleNav() {
-      const m = document.getElementById('navMenu');
-      const h = document.getElementById('hb');
-      m.classList.toggle('open');
-      h.style.opacity = m.classList.contains('open') ? '0' : '1';
+    function closeMobileMenu() {
+      document.getElementById('mobileOverlay').classList.remove('open');
+      document.getElementById('hb').innerHTML = '<span></span><span></span><span></span>';
+      const savedTop = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.overflow = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(savedTop || '0') * -1);
     }
-    document.querySelectorAll('#navMenu a').forEach(a => {
-      a.addEventListener('click', () => {
-        document.getElementById('navMenu').classList.remove('open');
-        document.getElementById('hb').style.opacity = '1';
-      });
+    function toggleNav() {
+      const o = document.getElementById('mobileOverlay');
+      const h = document.getElementById('hb');
+      const isOpen = o.classList.toggle('open');
+      if (isOpen) {
+        const scrollY = window.scrollY;
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = '-' + scrollY + 'px';
+        document.body.style.width = '100%';
+      } else {
+        closeMobileMenu();
+      }
+      h.innerHTML = isOpen
+        ? '<span style="transform:rotate(45deg) translate(5px,5px)"></span><span style="opacity:0"></span><span style="transform:rotate(-45deg) translate(5px,-5px)"></span>'
+        : '<span></span><span></span><span></span>';
+    }
+    document.querySelectorAll('.mob-item').forEach(a => {
+      a.addEventListener('click', closeMobileMenu);
     });
 
     // Kakao copy
